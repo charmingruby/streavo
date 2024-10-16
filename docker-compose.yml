@@ -1,0 +1,12 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: streavo-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: streavo-db
+    ports:
+      - '5432:5432'
+    volumes:
+      - .data:/var/lib/postgresql/data
