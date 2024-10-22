@@ -22,6 +22,9 @@ import { Request, Response } from 'express';
 import * as fs from 'fs';
 import { ContentManagementService } from '@src/core/service/content-management.service';
 import { MediaPlayerService } from '@src/core/service/media-player.service';
+import { RestResponseInterceptor } from '../interceptor/rest-response.interceptor';
+import { CreateVideoResponseDto } from '../dto/response/create-video-response.dto';
+import { VideoNotFoundException } from '@src/core/exception/video-not-found.expection';
 
 @Controller()
 export class ContentController {
@@ -63,6 +66,7 @@ export class ContentController {
       },
     ),
   )
+  @UseInterceptors(new RestResponseInterceptor(CreateVideoResponseDto))
   async uploadVideo(
     @Req() _req: Request,
     @Body()
@@ -82,7 +86,7 @@ export class ContentController {
       );
     }
 
-    return await this.contentManagementService.createContent({
+    return this.contentManagementService.createContent({
       title: contentData.title,
       description: contentData.description,
       url: videoFile.path,
@@ -98,37 +102,49 @@ export class ContentController {
     @Req() req: Request,
     @Res() res: Response,
   ): Promise<any> {
-    const url = await this.mediaPlayerService.prepareStreaming(videoId);
+    try {
+      const url = await this.mediaPlayerService.prepareStreaming(videoId);
 
-    if (!url) {
-      throw new NotFoundException('Video not found.');
-    }
+      if (!url) {
+        throw new NotFoundException('Video not found.');
+      }
 
-    const videoPath = path.join('.', url);
-    const fileSize = fs.statSync(videoPath).size;
+      const videoPath = path.join('.', url);
+      const fileSize = fs.statSync(videoPath).size;
 
-    const range = req.headers.range;
-    if (range) {
-      const parts = range.replace(/bytes=/, '').split('-');
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const range = req.headers.range;
+      if (range) {
+        const parts = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
 
-      const chunksize = end - start + 1;
-      const file = fs.createReadStream(videoPath, { start, end });
+        const chunksize = end - start + 1;
+        const file = fs.createReadStream(videoPath, { start, end });
 
-      res.writeHead(HttpStatus.PARTIAL_CONTENT, {
-        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': chunksize,
+        res.writeHead(HttpStatus.PARTIAL_CONTENT, {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunksize,
+          'Content-Type': 'video/mp4',
+        });
+
+        return file.pipe(res);
+      }
+
+      res.writeHead(HttpStatus.OK, {
+        'Content-Length': fileSize,
         'Content-Type': 'video/mp4',
       });
+    } catch (error) {
+      if (error instanceof VideoNotFoundException) {
+        return res.status(HttpStatus.NOT_FOUND).send({
+          message: error.message,
+          error: 'Not Found',
+          status: HttpStatus.NOT_FOUND,
+        });
+      }
 
-      return file.pipe(res);
+      throw error;
     }
-
-    res.writeHead(HttpStatus.OK, {
-      'Content-Length': fileSize,
-      'Content-Type': 'video/mp4',
-    });
   }
 }
