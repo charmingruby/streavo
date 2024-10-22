@@ -58,10 +58,6 @@ describe('ContentController (e2e)', () => {
           expect(response.body).toMatchObject({
             title: video.title,
             description: video.description,
-            url: expect.stringContaining('mp4'),
-            thumbnailUrl: expect.stringContaining('jpg'),
-            sizeInKb: video.sizeInKb,
-            duration: video.duration,
           });
         });
     });

@@ -1,20 +1,20 @@
 import { Expose } from 'class-transformer';
-import { IsDate, IsUUID } from 'class-validator';
+import { IsDate, IsString, IsUUID } from 'class-validator';
 
 export class CreateVideoResponseDto {
   @IsUUID()
   @Expose()
   id: string;
 
-  @IsUUID()
+  @IsString()
   @Expose()
   title: string;
 
-  @IsUUID()
+  @IsString()
   @Expose()
   description: string;
 
-  @IsUUID()
+  @IsString()
   @Expose()
   url: string;
 

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@src/persistence/prisma/prisma.service';
-import { randomUUID } from 'node:crypto';
+import { VideoDAO } from '@src/persistence/dao/video.dao';
 
 export interface CreateContentData {
   title: string;
@@ -12,25 +11,10 @@ export interface CreateContentData {
 
 @Injectable()
 export class ContentManagementService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(private readonly videoDao: VideoDAO) {}
 
   async createContent(createContentData: CreateContentData) {
-    const { title, description, thumbnailUrl, url, sizeInKb } =
-      createContentData;
-
-    const createdVideo = await this.prismaService.video.create({
-      data: {
-        id: randomUUID(),
-        title,
-        description,
-        url,
-        thumbnailUrl,
-        sizeInKb,
-        duration: 100,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    });
+    const createdVideo = await this.videoDao.create(createContentData);
 
     return createdVideo;
   }
