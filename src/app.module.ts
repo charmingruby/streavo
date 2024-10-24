@@ -3,7 +3,7 @@ import { ContentController } from './http/rest/controller/content.controller';
 import { ContentManagementService } from './core/service/content-management.service';
 import { MediaPlayerService } from './core/service/media-player.service';
 import { PrismaService } from './persistence/prisma/prisma.service';
-import { VideoDAO } from './persistence/dao/video.dao';
+import { ContentRepository } from './persistence/repository/content.repository';
 
 @Module({
   imports: [],
@@ -12,7 +12,7 @@ import { VideoDAO } from './persistence/dao/video.dao';
     PrismaService,
     ContentManagementService,
     MediaPlayerService,
-    VideoDAO,
+    ContentRepository,
   ],
 })
 export class AppModule {}
