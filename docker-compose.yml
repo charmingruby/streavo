@@ -1,11 +1,14 @@
+version: '3.8'
+
+name: 'fakeflix'
+
 services:
   db:
     image: postgres:15-alpine
-    container_name: streavo-db
+    container_name: fakeflix-db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: streavo-db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
     ports:
       - '5432:5432'
     volumes:
